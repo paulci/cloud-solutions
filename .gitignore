@@ -2,6 +2,9 @@
 **/*.dist-info/*
 **jwt**
 
+# Lambda Packages
+*-function.zip
+
 # Local .terraform directories
 **/.terraform/*
 
