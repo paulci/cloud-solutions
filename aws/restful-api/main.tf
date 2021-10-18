@@ -175,7 +175,34 @@ resource "aws_secretsmanager_secret" "jwtkey" {
   description = "JWT Secret for Lambda Authorizer"
 }
 
-resource "aws_secretsmanager_secret_version" "jwtkey" {
-  secret_id     = aws_secretsmanager_secret.jwtkey.id
-  secret_string = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoicGF1bCJ9.dnFzd_5kMxN41MqahA0X1ZzvMnpEioPDGjDL_xcqd5Y"
+# resource "aws_secretsmanager_secret_version" "jwtkey" {
+#   secret_id     = aws_secretsmanager_secret.jwtkey.id
+#   secret_string = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoicGF1bCJ9.dnFzd_5kMxN41MqahA0X1ZzvMnpEioPDGjDL_xcqd5Y"
+# }
+
+resource "aws_api_gateway_deployment" "v1" {
+  rest_api_id = aws_api_gateway_rest_api.modularapi.id
+
+  triggers = {
+    redeployment = sha1(jsonencode([
+      aws_api_gateway_resource.modularresource.id,
+      aws_api_gateway_method.modularresourcemethod.id,
+      aws_api_gateway_integration.lambdaintegration.id,
+    ]))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "v1" {
+  deployment_id = aws_api_gateway_deployment.v1.id
+  rest_api_id   = aws_api_gateway_rest_api.modularapi.id
+  stage_name    = "v1"
+}
+
+resource "aws_wafv2_web_acl_association" "v1" {
+  resource_arn = aws_api_gateway_stage.v1.arn
+  web_acl_arn  = aws_wafv2_web_acl.example.arn
 }
