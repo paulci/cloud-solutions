@@ -3,9 +3,9 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 resource "aws_iam_role" "lambda_execution" {
-  name = "api-lambda-execution"
+  name = "${var.function_name}-execution"
 
-  assume_role_policy = <<EOF
+  assume_role_policy = jsonencode(
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -18,8 +18,7 @@ resource "aws_iam_role" "lambda_execution" {
       "Sid": ""
     }
   ]
-}
-EOF
+})
 }
 
 resource "aws_lambda_function" "function" {

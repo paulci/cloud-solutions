@@ -56,8 +56,6 @@ def get_secret():
 
 
 def lambda_handler(event, context):
-    print('Event: {}'.format(event))
-    print('Context: {}'.format(context))
 
     policy = {
         'principalId': 'user',
@@ -76,10 +74,9 @@ def lambda_handler(event, context):
     secret = get_secret()
     
     try:
-        payload = jwt.decode(encoded_payload, secret, algorithms=['HS256'])
+        jwt.decode(encoded_payload, secret, algorithms=['HS256'])
     except PyJWTError:
         return policy
         
-    if payload['name'] == 'paul':
-        policy['policyDocument']['Statement'][0]['Effect'] = 'Allow'
+    policy['policyDocument']['Statement'][0]['Effect'] = 'Allow'
     return policy

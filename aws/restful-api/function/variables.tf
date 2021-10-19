@@ -1,6 +1,5 @@
 variable "environment_variables" {
     type = map
-    default = {}
 }
 
 variable "function_name" {
