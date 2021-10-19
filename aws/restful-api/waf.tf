@@ -44,7 +44,7 @@ resource "aws_wafv2_web_acl" "example" {
     }
   }
 
-    rule {
+  rule {
     name     = "rule-to-exclude-b"
     priority = 2
 
