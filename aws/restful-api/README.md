@@ -4,7 +4,6 @@ PoC for a low cost, scalable, publicly available REST API with improved security
 
 ## Architecture
 ![Architecture Diagram](regional.png)
-[[/regional.png|Architecture Diagram]]
 
 
 ## Notes:
