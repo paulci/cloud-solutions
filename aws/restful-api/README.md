@@ -8,10 +8,10 @@ PoC for a low cost, scalable, publicly available REST API with improved security
 
 ## Notes:
 - Simple Python authorizer returns a deny/allow policy depending on successfully decoded token
-- Calls to API must pass a JWT - encoded with the chosen secret - in the 'x-api-key' header
-- Applied [WAF] Rules cover [AWS Core Rules](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html) and [Known Bad Inputs](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html)
-- Logging and monitoring enabled in [Cloudwatch] for [Lambda] and WAF
-- [AWS Secrets Manager] used for JWT secret key
+- Calls to API must pass a [JWT](https://jwt.io/) - encoded with the chosen secret - in the 'x-api-key' header
+- Applied [WAF](https://aws.amazon.com/waf/) Rules cover [AWS Core Rules](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html) and [Known Bad Inputs](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html)
+- Logging and monitoring enabled in [Cloudwatch](https://aws.amazon.com/cloudwatch/) for [Lambda](https://aws.amazon.com/lambda/aws ) and WAF
+- [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) used for JWT secret key
 - Lambda packages automatically repackaged and deployed on handler code or dependency change
 - Tagging not present as there's no single strategy, but tags should be implemented in any deployed solution
 
@@ -39,18 +39,63 @@ PoC for a low cost, scalable, publicly available REST API with improved security
 | v1_invoke_url | Callable endpoint for deployed API |
 
 ## Example Usage
+### Deploy Resources to AWS
 ```
 terraform apply -var api_name=mynewapi -var resource_path=hello -var jwtsecret=<myjwtsecret>
+
+...
+Apply complete! Resources: 22 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+v1_invoke_url = "https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/v1/hello"
 ```
 
-### Windows/Powershell
+### API Call - Windows/Powershell
+Valid Token
 ```
-Invoke-WebRequest <> -Headers @{'Accept' = 'application/json'; 'x-api-key' = 'my.jwt.token}
+PS C:\Users\paul> Invoke-WebRequest https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/v1/hello -Headers @{'Accept' = 'application/json'; 'x-api-key' = 'my.jwt.token'}
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : "Hello from Lambda, 85.10.106.22!"
+RawContent        : HTTP/1.1 200 OK
+                    Connection: keep-alive
+                    x-amzn-RequestId: f434359d-0033-a856-4e20-e26f6ac13f7e
+                    x-amz-apigw-id: Gu0E4UIHgAMFSMQ=
+                    X-Amzn-Trace-Id: Root=1-feb6162b-68f7011b629b36f22d2159bd;Sampled=0
+                    ...
+Forms             : {}
+Headers           : {[Connection, keep-alive], [x-amzn-RequestId, f434359d-0033-a856-4e20-e26f6ac13f7e],
+                    [x-amz-apigw-id, Gu0E4UIHgAMFSMQ=], [X-Amzn-Trace-Id,
+                    Root=1-feb6162b-68f7011b629b36f22d2159bd;Sampled=0]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 35
+```
+Invalid Token
+```
+PS C:\Users\paul> Invoke-WebRequest https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/v1/hello -Headers @{'Accept' = 'application/json'; 'x-api-key' = 'invalidtoken'}
+
+Invoke-WebRequest : {"Message":"User is not authorized to access this resource with an explicit deny"}
+...
 ```
 
-### Mac/Linux
+### API Call - Mac/Linux
+Valid Token
 ```
-curl --header "x-api-key: my.jwt.token" <>
+$ curl --header "x-api-key: my.jwt.token" https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/v1/hello
+
+"Hello from Lambda, 85.10.106.22!"
+```
+Invalid Token
+```
+$ curl --header "x-api-key: invalidtoken" https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/v1/hello
+
+{"Message":"User is not authorized to access this resource with an explicit deny"}
 ```
 
 ## Resources
