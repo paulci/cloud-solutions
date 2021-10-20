@@ -8,11 +8,12 @@ PoC for a low cost, scalable, publicly available REST API with improved security
 
 ## Notes:
 - Simple Python authorizer returns a deny/allow policy depending on successfully decoded token
-- Calls to API must pass a JWT, encoded with the chosen secret, in the 'x-api-key' header
-- Applied WAF Rules cover [AWS Core Rules](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html) and [Known Bad Inputs](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html)
-- Logging and monitoring enabled
-- AWS Secrets Manager used for JWT secret key
+- Calls to API must pass a JWT - encoded with the chosen secret - in the 'x-api-key' header
+- Applied [WAF] Rules cover [AWS Core Rules](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html) and [Known Bad Inputs](https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-list.html)
+- Logging and monitoring enabled in [Cloudwatch] for [Lambda] and WAF
+- [AWS Secrets Manager] used for JWT secret key
 - Lambda packages automatically repackaged and deployed on handler code or dependency change
+- Tagging not present as there's no single strategy, but tags should be implemented in any deployed solution
 
 ## Requirements
 
@@ -42,6 +43,15 @@ PoC for a low cost, scalable, publicly available REST API with improved security
 terraform apply -var api_name=mynewapi -var resource_path=hello -var jwtsecret=<myjwtsecret>
 ```
 
+### Windows/Powershell
+```
+Invoke-WebRequest <> -Headers @{'Accept' = 'application/json'; 'x-api-key' = 'my.jwt.token}
+```
+
+### Mac/Linux
+```
+curl --header "x-api-key: my.jwt.token" <>
+```
 
 ## Resources
 
