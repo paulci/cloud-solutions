@@ -5,6 +5,10 @@
 # Lambda Packages
 *-function.zip
 
+# Python Specific
+**/__pycache__/*
+*.coverage
+
 # Local .terraform directories
 **/.terraform/*
 
