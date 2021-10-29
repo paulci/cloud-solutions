@@ -5,8 +5,7 @@ A solution to autoscale containerised build agents, dependent on Azure DevOps Qu
 ## Current State
 - Deployable Lambda function, with IAM Roles, Policy & Secret to poll Azure DevOps queue and populate Cloudwatch
     - Unit tested code, input structure validation
-    - Confirmed deploylable and successfully operates in us-east-1
-- Queues can be configured as [individual json files](src/ado_queue_function/config/example.json)
+    - Confirmed deploylable in us-east-1 and successfully operates against test ADO Org
 - No automated trigger
 - No state machine
 - No Alarms
@@ -14,7 +13,7 @@ A solution to autoscale containerised build agents, dependent on Azure DevOps Qu
 - No agent capacity monitoring
 
 ## Architecture
-![Architecture Diagram](architecture.png)
+![Architecture Diagram](architecture01.png)
 
 
 ## State Machine
@@ -23,14 +22,15 @@ A solution to autoscale containerised build agents, dependent on Azure DevOps Qu
 
 ## Notes:
 - Workflow is triggered if queue count is consistently above baseline or service count is consistently above baseline
-- Supports multiple agent queues, configurable by <>
+- Supports multiple agent queues, configurable by json files in [config directory](src/ado_queue_function/config/)
 - Max service count influenced by licenses held for self-hosted agents in Azure DevOps <insert links to dock>
 - Agents are immutable and will terminate after each execution
 - On scale-in, attempts are made to ensure no running jobs are terminated
 
 ## Future
-- Queue Config managed in DynamoDB rather than flat file
+- Queue Config managed in DynamoDB rather than flat files
 - Exceptions for Queue API call result in SNS alert
+- Architecture for shared-services implementation - Using VPC Interface Endpoints and NAT gateways in a shared VPC
 
 ## Requirements
 
