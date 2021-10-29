@@ -45,6 +45,8 @@ A solution to autoscale containerised build agents, dependent on Azure DevOps Qu
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | ado_org_name | Azure DevOps Service Org Name | string | n/a | Y |
+| agent_cw_namespace | Cloudwatch namespace of ECS Service | string | n/a | Y |
+| agent_cw_metric | Cloudwatch metric of ECS Service | string | n/a | Y |
 | function_timeout_seconds | Lambda Timeout Configuration | number | 60 | N |
 
 
@@ -77,3 +79,7 @@ Outputs:
 | aws_secretsmanager_secret.adopat | [aws_secretsmanager_secret](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret) |
 | module.ado_queue_function.aws_iam_role.lambda_execution | [aws_iam_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) |
 | module.ado_queue_function.aws_lambda_function.function | [aws_lambda_function](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function) |
+| aws_iam_policy.agent_service_metrics | [aws_iam_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy) |
+| aws_iam_role_policy_attachment.agent_service_metrics | [aws_iam_role_policy_attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) |
+| module.service_metrics_function.aws_iam_role.lambda_execution | [aws_iam_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) |
+| module.service_metrics_function.aws_lambda_function.function | [aws_lambda_function](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function) |
