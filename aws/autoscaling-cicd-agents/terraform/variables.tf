@@ -5,3 +5,11 @@
 variable "ado_org_name" {
   type = string
 }
+
+variable "agent_cw_namespace" {
+  type = string
+}
+
+variable "agent_cw_metric" {
+  type = string
+}

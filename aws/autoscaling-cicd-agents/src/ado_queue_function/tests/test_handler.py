@@ -9,7 +9,7 @@ from botocore.exceptions import ValidationError
 from pydantic import ValidationError
 import pytest
 
-from ado_queue_function import lambda_function
+from ado_queue_function import lambda_function, helpers
 from ado_queue_function.tests import test_data as tdata
 
 
@@ -28,6 +28,7 @@ class MockContext:
 
 
 class TestLambdaHandler:
+    @patch('ado_queue_function.lambda_function.helpers', helpers)
     def test_valid_config(self, secretsmanager_stub, cloudwatch_stub):
         secretsmanager_stub.add_response('get_secret_value', tdata.secrets_response, tdata.secrets_expected_params)
         cloudwatch_stub.add_response('put_metric_data', tdata.cw_response, tdata.cw_expected_params)
