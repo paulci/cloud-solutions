@@ -10,7 +10,6 @@ from copy import deepcopy
 secret_id = 'arn:aws:secretsmanager:us-east-1:123456789012:secret:MySecret'
 secrets_expected_params = {'SecretId': secret_id}
 secret = 'mysecretstring'
-os.environ['ado_secret_arn'] = secret_id
 secrets_response = {
     'ARN': secret_id,
     'Name': 'MySecret',
@@ -28,6 +27,10 @@ metric_data = {
     'MetricData': [{
         'MetricName': 'Queue1_waiting_jobs',
         'Value': 1.0
+    },
+    {
+        'MetricName': 'Queue1_unassigned_agents',
+        'Value': 1.0
     }]
 }
 cw_response = {}
@@ -41,8 +44,16 @@ valid_cw_data_structure = {
     'Namespace': 'ADOAgentQueue',
     'MetricData': [{
         'MetricName': 'Queue1_waiting_jobs',
-    }]
+    },
+    {
+        'MetricName': 'Queue1_unassigned_agents',
+    }
+    ]
 }
 
 invalid_cw_data_structure = deepcopy(valid_cw_data_structure)
 invalid_cw_data_structure.pop('Namespace')
+
+# ADO Data
+valid_ado_return = deepcopy(valid_cw_data_structure)
+valid_ado_return['MetricData'] = metric_data['MetricData']

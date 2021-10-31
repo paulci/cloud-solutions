@@ -4,6 +4,7 @@
 
 from unittest.mock import mock_open, patch
 import json
+import os
 
 from botocore.exceptions import ValidationError
 from pydantic import ValidationError
@@ -26,14 +27,20 @@ class MockContext:
     def get_remaining_time_in_millis(self):
         pass
 
-
+@patch.dict(os.environ, {'ado_org_name': 'myawsscalingorg', 'ado_secret_arn': tdata.secret_id})
 class TestLambdaHandler:
     @patch('ado_queue_function.lambda_function.helpers', helpers)
-    def test_valid_config(self, secretsmanager_stub, cloudwatch_stub):
+    def test_valid_config_scheduler_invoke(self, secretsmanager_stub, cloudwatch_stub, http_mock_get_single_queue):
         secretsmanager_stub.add_response('get_secret_value', tdata.secrets_response, tdata.secrets_expected_params)
         cloudwatch_stub.add_response('put_metric_data', tdata.cw_response, tdata.cw_expected_params)
         with patch('builtins.open', mock_open(read_data=json.dumps(tdata.valid_cw_data_structure))):
-            lambda_function.lambda_handler({}, MockContext())
+            lambda_function.lambda_handler({'source': 'aws.events'}, MockContext())
+    
+    @patch('ado_queue_function.lambda_function.helpers', helpers)
+    def test_valid_config_unscheduled_invoke(self, secretsmanager_stub, http_mock_get_single_queue):
+        secretsmanager_stub.add_response('get_secret_value', tdata.secrets_response, tdata.secrets_expected_params)
+        with patch('builtins.open', mock_open(read_data=json.dumps(tdata.valid_cw_data_structure))):
+            assert lambda_function.lambda_handler({}, MockContext()) == tdata.valid_ado_return
 
     def test_invalid_config(self):
         with patch('builtins.open', mock_open(read_data=json.dumps(tdata.invalid_cw_data_structure))):

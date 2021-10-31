@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 import os
-from datetime import datetime
+from unittest.mock import patch
 
 from botocore.exceptions import ClientError
 import pytest
@@ -12,6 +12,7 @@ from ado_queue_function import helpers
 from ado_queue_function.tests import test_data as tdata
 
 
+@patch.dict(os.environ, {'ado_secret_arn': tdata.secret_id})
 class TestGetSecret:
     def test_recover_secret(self, secretsmanager_stub):
         secretsmanager_stub.add_response('get_secret_value', tdata.secrets_response, tdata.secrets_expected_params)
