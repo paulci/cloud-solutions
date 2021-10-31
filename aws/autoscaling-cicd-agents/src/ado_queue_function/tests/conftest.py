@@ -45,11 +45,21 @@ def http_mock_get_single_queue():
         'https://dev.azure.com/myawsscalingorg/_apis/distributedtask/pools/1200/jobrequests?api-version=6.0',
         body='{"count":0, "value":[]}'
     )
+    httpretty.register_uri(
+        httpretty.GET,
+        'https://dev.azure.com/myawsscalingorg/_apis/distributedtask/pools/10/agents?includeAssignedRequest=true&api-version=6.1-preview.1',
+        body='{"count":2, "value":[{"assignedRequest":{"requestId": 1}, "status": "online"},{"status": "online"}]}'
+    )
 
 @pytest.fixture()
 def http_mock_get_http_error():
     httpretty.register_uri(
         httpretty.GET,
         'https://dev.azure.com/myawsscalingorg/_apis/distributedtask/pools/10/jobrequests?api-version=6.0',
+        status=403
+    )
+    httpretty.register_uri(
+        httpretty.GET,
+        'https://dev.azure.com/myawsscalingorg/_apis/distributedtask/pools/10/agents?includeAssignedRequest=true&api-version=6.1-preview.1',
         status=403
     )

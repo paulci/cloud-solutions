@@ -70,9 +70,20 @@ def get_ado_queue_count(pool_id: int, access_token: str) -> int:
     except RequestException as e:
         raise e
     waiting_jobs = [x for x in response.json()['value'] if not x.get('assignTime')]
-    if len(waiting_jobs) == 0:
-        raise ValueError('Queue is Empty, possibly indicating an invalid queue ID')
     return len(waiting_jobs)
+
+
+def get_ado_idle_count(pool_id: int, access_token: str) -> int:
+    org_name = os.environ.get('ado_org_name')
+    headers = {'Authorization': 'Basic {}'.format(access_token)}
+    url = 'https://dev.azure.com/{}/_apis/distributedtask/pools/{}/agents?includeAssignedRequest=true&api-version=6.1-preview.1'.format(org_name, pool_id)
+    try:
+        response = requests.get(url=url, headers=headers)
+        response.raise_for_status()
+    except RequestException as e:
+        raise e
+    idle_agents = [x for x in response.json()['value'] if not x.get('assignedRequest') and x['status'] == 'online']
+    return len(idle_agents)
 
 
 def put_cw_metric(metric_data: dict):

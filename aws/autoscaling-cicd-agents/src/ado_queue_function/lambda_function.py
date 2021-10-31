@@ -7,7 +7,7 @@ import json
 
 import helpers
 
-def lambda_handler(event, context):
+def lambda_handler(event, context) -> dict:
     config_path = 'config/'
     config_files = os.listdir(config_path)
     for file in config_files:
@@ -17,9 +17,9 @@ def lambda_handler(event, context):
         helpers.QueueConfig(**queue_config)
         ado_access_token = helpers.get_secret()
         queue_config['MetricData'][0]['Value'] = float(helpers.get_ado_queue_count(pool_id=queue_config['ado_pool_id'], access_token=ado_access_token))
-        helpers.put_cw_metric(queue_config)
-    return True
+        queue_config['MetricData'][1]['Value'] = float(helpers.get_ado_idle_count(pool_id=queue_config['ado_pool_id'], access_token=ado_access_token))
+        if event.get('source', False) == 'aws.events':
+            helpers.put_cw_metric(queue_config)
+    return queue_config
 
-# if trigger is schedule, write to cw metrics.  
-# move stub data into conftest
 # exception handling (sns/logging) for ADO and CW methods
