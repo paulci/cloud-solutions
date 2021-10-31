@@ -6,10 +6,13 @@ A solution to autoscale containerised build agents, dependent on Azure DevOps Qu
 - Deployable Lambda function, with IAM Roles, Policy & Secret to poll Azure DevOps queue and populate Cloudwatch
     - Unit tested code, input structure validation
     - Confirmed deploylable in us-east-1 and successfully operates against test ADO Org
+- Deployable linux container agents with IAM Roles, Policy & Secret to register agent with Azure DevOps queue
+    - Cluster & Task Definition
+    - ECR Repo
+    - Docker file to build and push to ECR
 - No automated trigger
 - No state machine
 - No Alarms
-- No agents/container infrastructure
 - No agent capacity monitoring
 
 ## Architecture
@@ -29,6 +32,7 @@ A solution to autoscale containerised build agents, dependent on Azure DevOps Qu
 
 ## Future
 - Queue Config managed in DynamoDB rather than flat files
+- Configurable Template for task definitions
 - Exceptions for Queue API call result in SNS alert
 - Architecture for shared-services implementation - Using VPC Interface Endpoints and NAT gateways in a shared VPC
 
@@ -45,6 +49,7 @@ A solution to autoscale containerised build agents, dependent on Azure DevOps Qu
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | ado_org_name | Azure DevOps Service Org Name | string | n/a | Y |
+| ado_pat | Personal Access Token scoped for Pool Management | string | n/a | Y |
 | agent_cw_namespace | Cloudwatch namespace of ECS Service | string | n/a | Y |
 | agent_cw_metric | Cloudwatch metric of ECS Service | string | n/a | Y |
 | function_timeout_seconds | Lambda Timeout Configuration | number | 60 | N |
@@ -83,3 +88,11 @@ Outputs:
 | aws_iam_role_policy_attachment.agent_service_metrics | [aws_iam_role_policy_attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) |
 | module.service_metrics_function.aws_iam_role.lambda_execution | [aws_iam_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) |
 | module.service_metrics_function.aws_lambda_function.function | [aws_lambda_function](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function) |
+| module.queue_001_cluster.aws_cloudwatch_log_group.ado_agent_logs | [aws_cloudwatch_log_group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group)  |
+| module.queue_001_cluster.aws_ecs_cluster.ado_agent_pool | [aws_ecs_cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster) |
+| module.queue_001_cluster.aws_ecs_task_definition.ado_agent_task | [aws_ecs_task_definition](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) |
+| module.queue_001_cluster.aws_iam_role.agent_task_role |  [aws_iam_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) |
+| module.queue_001_cluster.aws_iam_role_policy.agent_task_execution_policy | [aws_iam_role_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) |
+| module.queue_001_cluster.aws_kms_key.agent_data | [aws_kms_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) |
+| module.queue_001_cluster.aws_ssm_parameter.ado_pat | [aws_ssm_parameter](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) |
+| aws_ecr_repository.adoagent | [aws_ecr_repository](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository) |

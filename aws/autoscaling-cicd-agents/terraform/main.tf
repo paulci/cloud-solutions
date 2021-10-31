@@ -130,3 +130,21 @@ module "service_metrics_function" {
     ".pytest_cache"
   ]
 }
+
+# ECS Cluster, Task and IAM
+resource "aws_ecr_repository" "adoagent" {
+  name                 = "adoagent"
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+}
+
+module "queue_001_cluster" {
+  source = "./ecs"
+
+  ado_org_name       = var.ado_org_name
+  agent_cluster_name = "queue_001_cluster"
+  agent_image        = "${data.aws_caller_identity.current.account_id}.dkr.ecr.us-east-1.amazonaws.com/adoagent:latest"
+  ado_pat_secret     = var.ado_pat
+}
