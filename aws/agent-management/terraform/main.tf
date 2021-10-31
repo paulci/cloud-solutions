@@ -12,5 +12,3 @@ module "cognito" {
     user_pool_name = var.user_pool_name
 
 }
-
-#terraform plan -var user_pool_name=magnition-ci -var domain_name=magnition-ci -var web_client_name=magnition-ci
