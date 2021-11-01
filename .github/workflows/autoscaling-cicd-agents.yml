@@ -13,6 +13,9 @@ on:
     branches: [ master ]
     paths:
      - 'aws/autoscaling-cicd-agents/src/ado_queue_function/**'
+     - 'aws/autoscaling-cicd-agents/src/service_metrics_function/**'
+     - 'aws/autoscaling-cicd-agents/src/scaling_decider_function/**'
+     - 'aws/autoscaling-cicd-agents/src/ado_deregister_agents_function/**'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -48,6 +51,53 @@ jobs:
     defaults:
       run:
         working-directory: aws/autoscaling-cicd-agents/src/service_metrics_function
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r dev-requirements.txt
+
+      # Runs a set of commands using the runners shell
+      - name: Run unit tests
+        run: |
+          export PYTHONPATH=$(pwd)
+          coverage run --omit=test*,conftest*,__init*,**dist-packages/**,**site-packages/** -m pytest
+          coverage report
+
+  scaling_decider_function:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aws/autoscaling-cicd-agents/src/scaling_decider_function
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Install Dependencies
+        run: |
+          pip install -r dev-requirements.txt
+
+      # Runs a set of commands using the runners shell
+      - name: Run unit tests
+        run: |
+          export PYTHONPATH=$(pwd)
+          coverage run --omit=test*,conftest*,__init*,**dist-packages/**,**site-packages/** -m pytest
+          coverage report
+
+  ado_deregister_agents_function:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aws/autoscaling-cicd-agents/src/ado_deregister_agents_function
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:

@@ -23,6 +23,11 @@ variable "handler" {
   type = string
 }
 
+variable "layers" {
+  type    = list(any)
+  default = []
+}
+
 variable "package" {
   type = string
 }

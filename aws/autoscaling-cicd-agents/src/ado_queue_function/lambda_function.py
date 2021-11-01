@@ -16,8 +16,14 @@ def lambda_handler(event, context) -> dict:
             queue_config = json.loads(f.read())
         helpers.QueueConfig(**queue_config)
         ado_access_token = helpers.get_secret()
-        queue_config['MetricData'][0]['Value'] = float(helpers.get_ado_queue_count(pool_id=queue_config['ado_pool_id'], access_token=ado_access_token))
-        queue_config['MetricData'][1]['Value'] = float(helpers.get_ado_idle_count(pool_id=queue_config['ado_pool_id'], access_token=ado_access_token))
+        waiting_jobs = helpers.get_ado_queue_count(pool_id=queue_config['ado_pool_id'], access_token=ado_access_token)
+        idle_agents = helpers.get_ado_idle_count(pool_id=queue_config['ado_pool_id'], access_token=ado_access_token)
+
+        queue_config['MetricData'][0]['Value'] = float(waiting_jobs)
+        queue_config['MetricData'][1]['Value'] = float(idle_agents)
+        queue_config['waiting_jobs'] = waiting_jobs
+        queue_config['idle_agents'] = idle_agents
+        
         if event.get('source', False) == 'aws.events':
             helpers.put_cw_metric(queue_config)
     return queue_config

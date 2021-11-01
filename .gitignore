@@ -4,6 +4,8 @@
 
 # Lambda Packages
 *-function.zip
+*dependencies.zip
+
 
 # Python Specific
 **/__pycache__/*

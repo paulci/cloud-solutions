@@ -11,10 +11,19 @@ variable "ado_pat" {
   sensitive = true
 }
 
+variable "ado_pool_name" {
+  type = string
+}
+
 variable "agent_cw_namespace" {
   type = string
 }
 
 variable "agent_cw_metric" {
   type = string
+}
+
+variable "assign_public_ip" {
+  type    = string
+  default = "DISABLED"
 }
