@@ -31,6 +31,8 @@ A solution to autoscale containerised build agents, dependent on Azure DevOps Qu
 - On scale-in, attempts are made to ensure no running jobs are terminated
 
 ## Future
+- Waiter to validate task running/task stopped
+- RunTask supports max 10 instances/call.  Need validation
 - Queue Config managed in DynamoDB rather than flat files
 - Configurable Template for task definitions
 - Exceptions for Queue API call result in SNS alert

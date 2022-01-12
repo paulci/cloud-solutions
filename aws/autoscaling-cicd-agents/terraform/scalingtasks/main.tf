@@ -304,7 +304,7 @@ resource "aws_sfn_state_machine" "scaling_queue" {
         "Type" : "Map",
         "ItemsPath" : "$.describe_input.Tasks",
         "Parameters" : {
-          "Attachments.$" : "$$.Map.Item.Value.Attachments"
+          "Attachments.$" : "$$.Map.Item.Value"
           "pool_id.$" : "$.pool_id"
         }
       },
@@ -487,8 +487,8 @@ resource "aws_cloudwatch_metric_alarm" "idle_agent_count" {
   }
 }
 
-resource "aws_cloudwatch_event_rule" "workflow_alarm_trigger" { # rename
-  name        = "trigger_scaling_workflow"
+resource "aws_cloudwatch_event_rule" "scale_up_alarm_trigger" { # rename
+  name        = "scale_up_agents"
   description = "Trigger Scaling StepFunction Flow on Alarm"
 
   event_pattern = jsonencode({
@@ -511,8 +511,8 @@ resource "aws_cloudwatch_event_rule" "workflow_alarm_trigger" { # rename
   })
 }
 
-resource "aws_cloudwatch_event_rule" "agent_workflow_alarm_trigger" {
-  name        = "agent_trigger_scaling_workflow"
+resource "aws_cloudwatch_event_rule" "scale_down_alarm_trigger" {
+  name        = "scale_down_agents"
   description = "Trigger Scaling StepFunction Flow on Alarm"
 
   event_pattern = jsonencode({
@@ -553,8 +553,14 @@ resource "aws_iam_role" "cloudwatch_sfn_execution" {
   })
 }
 
-resource "aws_cloudwatch_event_target" "sfn" {
-  rule     = aws_cloudwatch_event_rule.workflow_alarm_trigger.name
+resource "aws_cloudwatch_event_target" "scale_up" {
+  rule     = aws_cloudwatch_event_rule.scale_up_alarm_trigger.name
+  arn      = aws_sfn_state_machine.scaling_queue.arn
+  role_arn = aws_iam_role.cloudwatch_sfn_execution.arn
+}
+
+resource "aws_cloudwatch_event_target" "scale_down" {
+  rule     = aws_cloudwatch_event_rule.scale_down_alarm_trigger.name
   arn      = aws_sfn_state_machine.scaling_queue.arn
   role_arn = aws_iam_role.cloudwatch_sfn_execution.arn
 }
