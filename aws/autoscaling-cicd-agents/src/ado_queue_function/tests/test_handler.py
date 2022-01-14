@@ -34,7 +34,7 @@ class TestLambdaHandler:
         secretsmanager_stub.add_response('get_secret_value', tdata.secrets_response, tdata.secrets_expected_params)
         cloudwatch_stub.add_response('put_metric_data', tdata.cw_response, tdata.cw_expected_params)
         with patch('builtins.open', mock_open(read_data=json.dumps(tdata.valid_cw_data_structure))):
-            lambda_function.lambda_handler({'source': 'aws.events'}, MockContext())
+            assert lambda_function.lambda_handler({'source': 'aws.events'}, MockContext()) == tdata.valid_ado_return
     
     @patch('ado_queue_function.lambda_function.helpers', helpers)
     def test_valid_config_unscheduled_invoke(self, secretsmanager_stub, http_mock_get_single_queue):
