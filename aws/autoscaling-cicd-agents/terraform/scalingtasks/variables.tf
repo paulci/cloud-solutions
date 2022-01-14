@@ -75,3 +75,8 @@ variable "subnet" {
 variable "task_family" {
   type = string
 }
+
+variable "workflow_logging_enabled" {
+  type    = bool
+  default = false
+}
