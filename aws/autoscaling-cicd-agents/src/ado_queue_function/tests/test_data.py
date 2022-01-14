@@ -29,11 +29,11 @@ secrets_response = {
 metric_data = {
     'Namespace': 'ADOAgentQueue',
     'MetricData': [{
-        'MetricName': 'Queue1_waiting_jobs',
+        'MetricName': 'Queue10_waiting_jobs',
         'Value': float(waiting_jobs)
     },
     {
-        'MetricName': 'Queue1_unassigned_agents',
+        'MetricName': 'Queue10_unassigned_agents',
         'Value': float(idle_agents)
     }]
 }
@@ -43,14 +43,12 @@ cw_expected_params = metric_data
 # Cloudwatch Payloads
 valid_cw_data_structure = {
     'ado_pool_id': '10',
-    'ado_secret_arn': 'arn:aws:secretsmanager:us-east-1:123456789012:secret:MySecret',
-    'ecs_service_arn': 'arn:aws:ecs:us-east-1:123456789012:secret:MyService',
     'Namespace': 'ADOAgentQueue',
     'MetricData': [{
-        'MetricName': 'Queue1_waiting_jobs',
+        'MetricName': 'Queue10_waiting_jobs',
     },
     {
-        'MetricName': 'Queue1_unassigned_agents',
+        'MetricName': 'Queue10_unassigned_agents',
     }
     ]
 }

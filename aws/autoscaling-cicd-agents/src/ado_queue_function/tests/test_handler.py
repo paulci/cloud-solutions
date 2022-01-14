@@ -6,8 +6,6 @@ from unittest.mock import mock_open, patch
 import json
 import os
 
-from botocore.exceptions import ValidationError
-from pydantic import ValidationError
 import pytest
 
 from ado_queue_function import lambda_function, helpers
@@ -27,7 +25,14 @@ class MockContext:
     def get_remaining_time_in_millis(self):
         pass
 
-@patch.dict(os.environ, {'ado_org_name': 'myawsscalingorg', 'ado_secret_arn': tdata.secret_id})
+@patch.dict(os.environ, {
+    'ado_org_name': 'myawsscalingorg', 
+    'ado_secret_arn': tdata.secret_id, 
+    'ado_pool_id': '10', 
+    'cw_namespace': 'ADOAgentQueue',
+    'agent_cw_metric_prefix': 'Queue',
+    'ado_secret_arn': 'arn:aws:secretsmanager:us-east-1:123456789012:secret:MySecret'
+    })
 class TestLambdaHandler:
     @patch('ado_queue_function.lambda_function.helpers', helpers)
     def test_valid_config_scheduler_invoke(self, secretsmanager_stub, cloudwatch_stub, http_mock_get_single_queue):
@@ -42,8 +47,8 @@ class TestLambdaHandler:
         with patch('builtins.open', mock_open(read_data=json.dumps(tdata.valid_cw_data_structure))):
             assert lambda_function.lambda_handler({}, MockContext()) == tdata.valid_ado_return
 
+    @patch.dict(os.environ, {'cw_namespace': ''})
     def test_invalid_config(self):
-        with patch('builtins.open', mock_open(read_data=json.dumps(tdata.invalid_cw_data_structure))):
-            with pytest.raises(ValidationError) as excinfo:
-                lambda_function.lambda_handler({}, MockContext())
+        with pytest.raises(ValueError) as excinfo:
+            lambda_function.lambda_handler({}, MockContext())
         assert 'Namespace' in str(excinfo.value)

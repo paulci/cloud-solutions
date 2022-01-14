@@ -6,10 +6,6 @@ variable "layer_name" {
   type = string
 }
 
-variable "dependency_source_dir" {
-  type = string
-}
-
 variable "runtimes" {
   type = list(string)
 }

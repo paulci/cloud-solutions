@@ -21,6 +21,9 @@ secretsmanager_client = session.client(
 
 
 def get_secret() -> str:
+    '''
+    Retrieve base64encoded PAT from Secrets Manager
+    '''
     secret_name = os.environ.get('ado_secret_arn')
     try:
         get_secret_value_response = secretsmanager_client.get_secret_value(
@@ -42,6 +45,16 @@ def get_secret() -> str:
 
 
 def get_ado_agent_id(pool_id: int, agent_name: str, access_token: str) -> int:
+    '''
+    Retrieve the ID of the agent to be terminated
+
+    Parameters:
+        pool_id (int):      Azure DevOps Pool ID
+        agent_name (str):   Used for filtering agents in pool
+        access_token (str): base64encoded PAT
+    Returns:
+        Agent ID
+    '''
     org_name = os.environ.get('ado_org_name')
     headers = {'Authorization': 'Basic {}'.format(access_token)}
     url = 'https://dev.azure.com/{}/_apis/distributedtask/pools/{}/agents?agentName={}&api-version=6.1-preview.1'.format(org_name, pool_id, agent_name)
@@ -58,6 +71,16 @@ def get_ado_agent_id(pool_id: int, agent_name: str, access_token: str) -> int:
 
 
 def delete_ado_agent(pool_id: int, agent_id: int, access_token: str) -> int:
+    '''
+    Request the agent be terminated, once any executing job completes
+
+    Parameters:
+        pool_id (int):      Azure DevOps Pool ID
+        agent_id (int):     Agent ID
+        access_token (str): base64encoded PAT
+    Returns:
+        HTTP Status
+    '''
     org_name = os.environ.get('ado_org_name')
     headers = {'Authorization': 'Basic {}'.format(access_token)}
     url = 'https://dev.azure.com/{}/_apis/distributedtask/pools/{}/agents/{}?api-version=6.1-preview.1'.format(org_name, pool_id, agent_id)

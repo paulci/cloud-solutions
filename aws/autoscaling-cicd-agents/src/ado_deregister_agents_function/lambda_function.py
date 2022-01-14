@@ -8,6 +8,21 @@ import helpers
 
 
 def lambda_handler(event, context) -> int:
+    '''
+    Depending on whether the container is assigned a Public IP, the
+    source of the name will be different.
+
+    Retrieve the agent details and deregister the agent from Azure DevOps, once 
+    executing jobs are complete.
+
+    This results in container termination in ECS.  As there is no service, the
+    container will not relaunch.
+
+    Parameters:
+        event, context : Lambda specific
+    Returns:
+        HTTP Status code from Azure DevOps de-registration
+    '''
     container_public_ip = os.environ.get('assign_public_ip', 'UNSET')
     hostname_lookup = {
         'DISABLED': 'RuntimeId',

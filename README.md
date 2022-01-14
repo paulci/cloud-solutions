@@ -11,4 +11,4 @@ While these solutions will work, they're not intended to be a ready-made solutio
 | Platform | Topic | Status |
 |----------|-------|--------|
 | AWS | [AWS API Gateway Terraform Solution](aws/restful-api) | Complete |
-| AWS | [AWS Autoscaling Container Build Agent Solution for Azure DevOps Services](aws/autoscaling-cicd-agents) | WIP |
+| AWS | [AWS Autoscaling Container Build Agent Solution for Azure DevOps Services](aws/autoscaling-cicd-agents) | Complete |

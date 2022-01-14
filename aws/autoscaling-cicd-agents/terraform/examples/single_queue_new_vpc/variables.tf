@@ -11,10 +11,6 @@ variable "ado_pat" {
   sensitive = true
 }
 
-variable "ado_pool_id" {
-  type = string
-}
-
 variable "ado_pool_name" {
   type = string
 }
@@ -23,29 +19,7 @@ variable "agent_cw_namespace" {
   type = string
 }
 
-variable "agent_cw_metric_prefix" {
-  type    = string
-  default = "Queue"
-}
-
 variable "assign_public_ip" {
   type    = string
   default = "DISABLED"
-}
-
-variable "subnet" {
-  type = string
-}
-
-variable "agent_security_group" {
-  type = string
-}
-
-variable "agent_cluster_name" {
-  type = string
-}
-
-variable "image_name" {
-  type    = string
-  default = "adoagent"
 }
