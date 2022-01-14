@@ -53,7 +53,7 @@ resource "aws_ecs_cluster" "ado_agent_pool" {
 }
 
 resource "aws_ecs_task_definition" "ado_agent_task" {
-  family = "ado_agent_task"
+  family = var.state_machine_name
   container_definitions = jsonencode([
     {
       name      = "adoagent"
@@ -78,7 +78,7 @@ resource "aws_ecs_task_definition" "ado_agent_task" {
 }
 
 resource "aws_iam_role" "agent_task_role" {
-  name = "adoagentexecutionrole"
+  name = "${var.state_machine_name}_ecs_execution_role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -268,7 +268,7 @@ resource "aws_sfn_state_machine" "scaling_queue" {
         "ResultPath" : "$.result"
         "Parameters" : {
           "Cluster" : "${aws_ecs_cluster.ado_agent_pool.arn}",
-          "Family" : "ado_agent_task",
+          "Family" : "${var.state_machine_name}",
           "DesiredStatus" : "RUNNING"
         },
         "Resource" : "arn:aws:states:::aws-sdk:ecs:listTasks"
@@ -349,7 +349,7 @@ resource "aws_sfn_state_machine" "scaling_queue" {
 }
 
 resource "aws_iam_role" "sfn_execution" {
-  name = "state_machine_execution"
+  name = "${var.state_machine_name}_state_machine_execution"
 
   assume_role_policy = jsonencode(
     {
@@ -422,7 +422,7 @@ resource "aws_iam_role_policy" "workflow_execution_policy" {
 #  Cloudwatch Resources                                             #
 #####################################################################
 resource "aws_iam_role" "cloudwatch_sfn_execution" {
-  name = "event_sfn_execution"
+  name = "${var.state_machine_name}_event_sfn_execution"
 
   assume_role_policy = jsonencode(
     {
@@ -441,7 +441,7 @@ resource "aws_iam_role" "cloudwatch_sfn_execution" {
 }
 
 resource "aws_cloudwatch_event_rule" "ado_scaling_workflow" {
-  name                = "trigger_scaling_agent_workflow"
+  name                = "trigger_${var.state_machine_name}_workflow"
   description         = "Populate CW with ADO Metrics and manage ECS Tasks"
   schedule_expression = "rate(2 minutes)"
 }

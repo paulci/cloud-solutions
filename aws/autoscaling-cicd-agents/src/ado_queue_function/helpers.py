@@ -9,7 +9,7 @@ import boto3
 from botocore.exceptions import ClientError
 import requests
 from requests import RequestException
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 region_name = os.environ.get('region')
 
@@ -33,13 +33,21 @@ class MetricData(BaseModel):
 
 class QueueConfig(BaseModel):
     ado_pool_id: str
-    ado_secret_arn: str
-    ecs_service_arn: str
     Namespace: str
     MetricData: List[MetricData]
 
+    @validator('*', pre=True)
+    def not_set(cls, v):
+        if v not in ['', None, 0]:
+            return v
+        else:
+            raise ValueError('Value is unset')
+
 
 def get_secret() -> str:
+    '''
+    Retrieve base64encoded PAT from Secrets Manager
+    '''
     secret_name = os.environ.get('ado_secret_arn')
     try:
         get_secret_value_response = secretsmanager_client.get_secret_value(
@@ -61,6 +69,15 @@ def get_secret() -> str:
 
 
 def get_ado_queue_count(pool_id: int, access_token: str) -> int:
+    '''
+    Retrieve the count of unassigned jobs in the given Azure DevOps queue
+
+    Parameters:
+        pool_id (int):      Azure DevOps Pool ID
+        access_token (str): base64encoded PAT
+    Returns:
+        Count of waiting jobs
+    '''
     org_name = os.environ.get('ado_org_name')
     headers = {'Authorization': 'Basic {}'.format(access_token)}
     url = 'https://dev.azure.com/{}/_apis/distributedtask/pools/{}/jobrequests?api-version=6.0'.format(org_name, pool_id)
@@ -74,6 +91,15 @@ def get_ado_queue_count(pool_id: int, access_token: str) -> int:
 
 
 def get_ado_idle_count(pool_id: int, access_token: str) -> int:
+    '''
+    Retrieve the count of idle Azure DevOps agents in the given pool
+
+    Parameters:
+        pool_id (int):      Azure DevOps Pool ID
+        access_token (str): base64encoded PAT
+    Returns:
+        Count of idle agents
+    '''
     org_name = os.environ.get('ado_org_name')
     headers = {'Authorization': 'Basic {}'.format(access_token)}
     url = 'https://dev.azure.com/{}/_apis/distributedtask/pools/{}/agents?includeAssignedRequest=true&api-version=6.1-preview.1'.format(org_name, pool_id)
@@ -87,6 +113,14 @@ def get_ado_idle_count(pool_id: int, access_token: str) -> int:
 
 
 def put_cw_metric(metric_data: dict):
+    '''
+    Write the waiting jobs count and idle agents count for the given pool to Cloudwatch
+
+    Parameters:
+        metric_data (dict): Cloudwatch payload with updated agent/job counts
+    Returns:
+        None
+    '''
     try:
         cloudwatch_client.put_metric_data(
             Namespace=metric_data['Namespace'],

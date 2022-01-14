@@ -19,6 +19,17 @@ cloudwatch_client = session.client(
 
 
 def lambda_handler(event, context):
+    '''
+    Retrieve the Cloudwatch-backed metrics representing the
+    Azure DevOps waiting jobs and idle agents.
+
+    Surplus to requirements.
+
+    Parameters:
+        event, context : Lambda specific
+    Returns:
+        Scaling decision
+    '''
     cw_namespace = os.environ.get('cw_namespace')
     cw_metric = os.environ.get('cw_metric')
     end_time = datetime.now(timezone.utc)
