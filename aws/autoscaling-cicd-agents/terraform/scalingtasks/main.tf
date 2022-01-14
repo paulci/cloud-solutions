@@ -138,10 +138,21 @@ resource "aws_iam_role_policy" "agent_task_execution_policy" {
 #####################################################################
 # State Machine Resources                                           #
 #####################################################################
+resource "aws_cloudwatch_log_group" "scaling_workflow" {
+  name              = var.state_machine_name
+  retention_in_days = 7
+}
+
 resource "aws_sfn_state_machine" "scaling_queue" {
   name     = var.state_machine_name
   role_arn = aws_iam_role.sfn_execution.arn
   type     = "EXPRESS"
+
+  logging_configuration {
+    log_destination        = "${aws_cloudwatch_log_group.scaling_workflow.arn}:*"
+    include_execution_data = var.workflow_logging_enabled
+    level                  = var.workflow_logging_enabled == true ? "ALL" : "OFF"
+  }
 
   definition = jsonencode({
     "Comment" : "Scaling ADO Agents",
@@ -410,130 +421,6 @@ resource "aws_iam_role_policy" "workflow_execution_policy" {
 #####################################################################
 #  Cloudwatch Resources                                             #
 #####################################################################
-
-resource "aws_cloudwatch_metric_alarm" "waiting_job_count" {
-  alarm_name                = "ado_queue001_waiting_jobs"
-  comparison_operator       = "GreaterThanThreshold"
-  evaluation_periods        = "1"
-  threshold                 = "0"
-  alarm_description         = "Request error rate has exceeded 10%"
-  insufficient_data_actions = []
-
-  metric_query {
-    id          = "e1"
-    expression  = "m1-m2"
-    label       = "Delta"
-    return_data = "true"
-  }
-
-  metric_query {
-    id = "m1"
-
-    metric {
-      metric_name = "Queue1_waiting_jobs"
-      namespace   = "ADOAgentQueue"
-      period      = "120"
-      stat        = "Maximum"
-    }
-  }
-
-  metric_query {
-    id = "m2"
-
-    metric {
-      metric_name = "Queue1_unassigned_agents"
-      namespace   = "ADOAgentQueue"
-      period      = "120"
-      stat        = "Maximum"
-    }
-  }
-}
-
-resource "aws_cloudwatch_metric_alarm" "idle_agent_count" {
-  alarm_name                = "ado_queue001_idle_agents"
-  comparison_operator       = "LessThanThreshold"
-  evaluation_periods        = "1"
-  threshold                 = "0"
-  alarm_description         = "Request error rate has exceeded 10%"
-  insufficient_data_actions = []
-
-  metric_query {
-    id          = "e1"
-    expression  = "m1-m2"
-    label       = "Delta"
-    return_data = "true"
-  }
-
-  metric_query {
-    id = "m1"
-
-    metric {
-      metric_name = "Queue1_waiting_jobs"
-      namespace   = "ADOAgentQueue"
-      period      = "120"
-      stat        = "Maximum"
-    }
-  }
-
-  metric_query {
-    id = "m2"
-
-    metric {
-      metric_name = "Queue1_unassigned_agents"
-      namespace   = "ADOAgentQueue"
-      period      = "120"
-      stat        = "Maximum"
-    }
-  }
-}
-
-resource "aws_cloudwatch_event_rule" "scale_up_alarm_trigger" { # rename
-  name        = "scale_up_agents"
-  description = "Trigger Scaling StepFunction Flow on Alarm"
-
-  event_pattern = jsonencode({
-    "source" : [
-      "aws.cloudwatch"
-    ],
-    "detail-type" : [
-      "CloudWatch Alarm State Change"
-    ],
-    "detail" : {
-      "state" : {
-        "value" : [
-          "ALARM"
-        ]
-      }
-    }
-    "resources" : [
-      "${aws_cloudwatch_metric_alarm.waiting_job_count.arn}"
-    ]
-  })
-}
-
-resource "aws_cloudwatch_event_rule" "scale_down_alarm_trigger" {
-  name        = "scale_down_agents"
-  description = "Trigger Scaling StepFunction Flow on Alarm"
-
-  event_pattern = jsonencode({
-    "source" : [
-      "aws.cloudwatch"
-    ],
-    "detail-type" : [
-      "CloudWatch Alarm State Change"
-    ],
-    "detail" : {
-      "state" : {
-        "value" : [
-          "ALARM"
-        ]
-      }
-    }
-    "resources" : [
-      "${aws_cloudwatch_metric_alarm.idle_agent_count.arn}"
-    ]
-  })
-}
 resource "aws_iam_role" "cloudwatch_sfn_execution" {
   name = "event_sfn_execution"
 
@@ -553,35 +440,16 @@ resource "aws_iam_role" "cloudwatch_sfn_execution" {
   })
 }
 
-resource "aws_cloudwatch_event_target" "scale_up" {
-  rule     = aws_cloudwatch_event_rule.scale_up_alarm_trigger.name
-  arn      = aws_sfn_state_machine.scaling_queue.arn
-  role_arn = aws_iam_role.cloudwatch_sfn_execution.arn
-}
-
-resource "aws_cloudwatch_event_target" "scale_down" {
-  rule     = aws_cloudwatch_event_rule.scale_down_alarm_trigger.name
-  arn      = aws_sfn_state_machine.scaling_queue.arn
-  role_arn = aws_iam_role.cloudwatch_sfn_execution.arn
-}
-
-resource "aws_cloudwatch_event_rule" "ado_metric_scheduler" {
-  name                = "trigger_ado_metrics_check"
-  description         = "Populate CW with ADO Metrics via Lambda"
+resource "aws_cloudwatch_event_rule" "ado_scaling_workflow" {
+  name                = "trigger_scaling_agent_workflow"
+  description         = "Populate CW with ADO Metrics and manage ECS Tasks"
   schedule_expression = "rate(2 minutes)"
 }
 
-resource "aws_cloudwatch_event_target" "lambda" {
-  rule = aws_cloudwatch_event_rule.ado_metric_scheduler.name
-  arn  = var.ado_queue_function_arn
-}
-
-resource "aws_lambda_permission" "allow_cloudwatch" {
-  statement_id  = "AllowExecutionFromCloudWatch"
-  action        = "lambda:InvokeFunction"
-  function_name = var.ado_queue_function_name
-  principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.ado_metric_scheduler.arn
+resource "aws_cloudwatch_event_target" "sfn" {
+  rule     = aws_cloudwatch_event_rule.ado_scaling_workflow.name
+  arn      = aws_sfn_state_machine.scaling_queue.arn
+  role_arn = aws_iam_role.cloudwatch_sfn_execution.arn
 }
 
 resource "aws_iam_role_policy" "cloudwatch_sfn_execution" {

@@ -203,4 +203,5 @@ module "queue001_workflow" {
   agent_image                 = "${data.aws_caller_identity.current.account_id}.dkr.ecr.us-east-1.amazonaws.com/adoagent:latest"
   ado_pat_secret              = var.ado_pat
   ado_pool_name               = var.ado_pool_name
+  workflow_logging_enabled    = true
 }
