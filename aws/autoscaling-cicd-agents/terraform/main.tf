@@ -6,37 +6,6 @@ data "aws_region" "current" {}
 
 data "aws_caller_identity" "current" {}
 
-# Temp Networking
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "3.11.0"
-
-  name = "tooling-vpc"
-  cidr = "10.0.0.0/16"
-
-  azs             = ["us-east-1a"]
-  private_subnets = ["10.0.1.0/24"]
-  public_subnets  = ["10.0.101.0/24"]
-
-  enable_nat_gateway     = true
-  single_nat_gateway     = false
-  one_nat_gateway_per_az = true
-}
-
-resource "aws_security_group" "ado_agent" {
-  name        = "ado_agent_security_group"
-  description = "Allow access to poll ADO Orchestration Layer"
-  vpc_id      = module.vpc.vpc_id
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-}
-
 #####################################################################
 # Shared Function Resources                                         #
 #####################################################################
@@ -81,10 +50,10 @@ resource "aws_iam_policy" "ado_queue_metrics" {
 }
 
 module "common_dependencies" {
-  source = "./dependencies"
+  source = "./modules/dependencies"
 
   layer_name            = "python_dependencies"
-  dependency_source_dir = "../src/dependencies"
+  dependency_source_dir = "../../../src/dependencies"
   runtimes              = ["python3.9"]
 }
 
@@ -94,7 +63,7 @@ resource "aws_iam_role_policy_attachment" "ado_queue_metrics" {
 }
 
 module "ado_queue_function" {
-  source = "./function"
+  source = "./modules/function"
 
   function_name = "ado_queue_metrics"
   package       = "ado-function.zip"
@@ -106,7 +75,7 @@ module "ado_queue_function" {
     ado_secret_arn = aws_secretsmanager_secret.adopat.arn
     region         = data.aws_region.current.name
   }
-  function_source_dir = "../src/ado_queue_function"
+  function_source_dir = "../../../src/ado_queue_function"
   package_excludes = [
     "requirements.txt",
     "dev-requirements.txt",
@@ -120,7 +89,7 @@ module "ado_queue_function" {
 # Workflow Specific
 
 module "scaling_decider_function" {
-  source = "./function"
+  source = "./modules/function"
 
   function_name = "ecs_scaling_decider"
   package       = "decider-function.zip"
@@ -131,7 +100,7 @@ module "scaling_decider_function" {
     ado_secret_arn = aws_secretsmanager_secret.adopat.arn
     region         = data.aws_region.current.name
   }
-  function_source_dir = "../src/scaling_decider_function"
+  function_source_dir = "../../../src/scaling_decider_function"
   package_excludes = [
     "requirements.txt",
     "dev-requirements.txt",
@@ -148,7 +117,7 @@ resource "aws_iam_role_policy_attachment" "scaling_decider_function" {
 }
 
 module "ado_deregister_agents_function" {
-  source = "./function"
+  source = "./modules/function"
 
   function_name = "deregister_ado_agents"
   package       = "deregister-function.zip"
@@ -161,7 +130,7 @@ module "ado_deregister_agents_function" {
     region           = data.aws_region.current.name
     assign_public_ip = var.assign_public_ip
   }
-  function_source_dir = "../src/ado_deregister_agents_function"
+  function_source_dir = "../../../src/ado_deregister_agents_function"
   package_excludes = [
     "requirements.txt",
     "dev-requirements.txt",
@@ -184,8 +153,8 @@ resource "aws_iam_role_policy_attachment" "ado_deregister_agents_function" {
 # To be used on a per-queue basis                                   #
 #####################################################################
 
-module "queue001_workflow" {
-  source = "./scalingtasks"
+module "scaling_workflow" {
+  source = "./modules/scalingtasks"
 
   state_machine_name          = "agent_task_scaling"
   ado_queue_function_arn      = module.ado_queue_function.function_arn
@@ -193,13 +162,13 @@ module "queue001_workflow" {
   ado_deregister_function_arn = module.ado_deregister_agents_function.function_arn
   decider_function            = module.scaling_decider_function.function_arn
   task_family                 = "ado_agent_task"
-  subnet                      = module.vpc.private_subnets[0]
-  security_group              = aws_security_group.ado_agent.id
+  subnet                      = var.subnet
+  security_group              = var.agent_security_group
   image_name                  = "adoagent"
   image_tag_mutability        = "MUTABLE"
   image_scan_on_push          = false
   ado_org_name                = var.ado_org_name
-  agent_cluster_name          = "queue_001_cluster"
+  agent_cluster_name          = var.agent_cluster_name
   agent_image                 = "${data.aws_caller_identity.current.account_id}.dkr.ecr.us-east-1.amazonaws.com/adoagent:latest"
   ado_pat_secret              = var.ado_pat
   ado_pool_name               = var.ado_pool_name

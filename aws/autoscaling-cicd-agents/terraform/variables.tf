@@ -27,3 +27,15 @@ variable "assign_public_ip" {
   type    = string
   default = "DISABLED"
 }
+
+variable "subnet" {
+  type    = string
+}
+
+variable "agent_security_group" {
+  type    = string
+}
+
+variable "agent_cluster_name" {
+  type    = string
+}
