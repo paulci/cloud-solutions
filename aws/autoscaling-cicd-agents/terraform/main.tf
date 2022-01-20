@@ -53,7 +53,7 @@ module "common_dependencies" {
   source = "./modules/dependencies"
 
   layer_name            = "python_dependencies"
-  dependency_source_dir = "../../../src/dependencies"
+  dependency_source_dir = "../../../src"
   runtimes              = ["python3.9"]
 }
 
