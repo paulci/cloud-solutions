@@ -43,7 +43,7 @@ jobs:
       - name: Run unit tests
         run: |
           export PYTHONPATH=$(pwd)
-          coverage run --include=helpers.py,lambda_function.py -m pytest
+          coverage run -m pytest
           coverage report
 
   service_metrics_function:
