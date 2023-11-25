@@ -1,0 +1,72 @@
+name: Restful API Unit Tests
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches:
+    - master
+    - feature/*
+    - fix/*
+  pull_request:
+    branches: [ master ]
+    paths:
+     - 'aws/restful-api/src**'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  auth_function:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aws/restful-api/src/auth_function
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4 
+        with:
+          python-version: '3.9'
+
+      # Runs a single command using the runners shell
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r dev-requirements.txt
+
+      # Runs a set of commands using the runners shell
+      - name: Run unit tests
+        run: |
+          export PYTHONPATH=$(pwd)
+          coverage run -m pytest
+          coverage report
+
+  hello_function:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aws/restful-api/src/hello_function
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4 
+        with:
+          python-version: '3.9'
+
+      # Runs a single command using the runners shell
+      - name: Install Dependencies
+        run: |
+          pip install -r dev-requirements.txt
+
+      # Runs a set of commands using the runners shell
+      - name: Run unit tests
+        run: |
+          export PYTHONPATH=$(pwd)
+          coverage run -m pytest
+          coverage report
