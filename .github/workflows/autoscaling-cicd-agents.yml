@@ -9,6 +9,7 @@ on:
     branches:
     - master
     - feature/*
+    - fix/*
   pull_request:
     branches: [ master ]
     paths:
@@ -43,7 +44,7 @@ jobs:
       - name: Run unit tests
         run: |
           export PYTHONPATH=$(pwd)
-          coverage run --omit=test*,conftest*,__init*,*/*dist-packages/**,*/*site-packages/** -m pytest
+          coverage run --omit=tests/**,conftest*,__init*,*/*dist-packages*/**,*/*site-packages*/** -m pytest
           coverage report
 
   service_metrics_function:
