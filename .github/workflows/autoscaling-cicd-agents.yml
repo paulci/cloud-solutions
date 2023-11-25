@@ -47,7 +47,7 @@ jobs:
       - name: Run unit tests
         run: |
           export PYTHONPATH=$(pwd)
-          coverage run -m pytest
+          coverage run --omit=tests/**,*__init__.py*,*/*dist-packages*/**,*/*site-packages*/** -m pytest
           coverage report
 
   service_metrics_function:
@@ -87,6 +87,9 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4 
+        with:
+          python-version: '3.9'
 
       # Runs a single command using the runners shell
       - name: Install Dependencies
@@ -97,7 +100,7 @@ jobs:
       - name: Run unit tests
         run: |
           export PYTHONPATH=$(pwd)
-          coverage run --omit=test*,conftest*,__init*,**dist-packages/**,**site-packages/** -m pytest
+          coverage run --omit=tests/**,*__init__.py*,*/*dist-packages*/**,*/*site-packages*/** -m pytest
           coverage report
 
   ado_deregister_agents_function:
@@ -110,6 +113,9 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4 
+        with:
+          python-version: '3.9'
 
       # Runs a single command using the runners shell
       - name: Install Dependencies
@@ -121,5 +127,5 @@ jobs:
       - name: Run unit tests
         run: |
           export PYTHONPATH=$(pwd)
-          coverage run --omit=test*,conftest*,__init*,**dist-packages/**,**site-packages/** -m pytest
+          coverage run --omit=tests/**,*__init__.py*,*/*dist-packages*/**,*/*site-packages*/** -m pytest
           coverage report
