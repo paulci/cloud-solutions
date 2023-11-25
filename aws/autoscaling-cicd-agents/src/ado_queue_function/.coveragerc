@@ -1,0 +1,6 @@
+[run]
+omit =
+    tests/**
+    */*site-packages*/**
+    */*dist-packages*/**
+    *__init__.py

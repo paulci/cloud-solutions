@@ -44,7 +44,7 @@ jobs:
       - name: Run unit tests
         run: |
           export PYTHONPATH=$(pwd)
-          coverage run --omit=tests/**,conftest*,__init*,*/*dist-packages*/**,*/*site-packages*/** -m pytest
+          coverage run -m pytest
           coverage report
 
   service_metrics_function:
