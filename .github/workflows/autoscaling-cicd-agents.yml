@@ -74,7 +74,7 @@ jobs:
       - name: Run unit tests
         run: |
           export PYTHONPATH=$(pwd)
-          coverage run --omit=test*,conftest*,__init*,**dist-packages/**,**site-packages/** -m pytest
+          coverage run --omit=tests/**,*__init__.py*,*/*dist-packages*/**,*/*site-packages*/** -m pytest
           coverage report
 
   scaling_decider_function:
